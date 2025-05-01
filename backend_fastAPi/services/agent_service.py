@@ -30,8 +30,10 @@ class AgentService:
         # Step 3: Generate the UI code based on the analysis and plan
         generation_result = await self._generate_ui_code(requirement, analysis, plan)
         
-        # Extract HTML, CSS, and JavaScript from the generation result
-        html, css, javascript = self._extract_code_blocks(generation_result)
+        # generation_result now directly contains the code blocks
+        html = generation_result.get('html', '')
+        css = generation_result.get('css', '')
+        javascript = generation_result.get('javascript', '')
         
         # Check if we need to provide feedback instead of partial code
         feedback = None
@@ -123,7 +125,7 @@ class AgentService:
         
         return await self.llm_service.generate_text(prompt)
     
-    async def _generate_ui_code(self, requirement: str, analysis: str, plan: str) -> str:
+    async def _generate_ui_code(self, requirement: str, analysis: str, plan: str) -> Dict[str, str]:
         """Generate the actual UI code based on the requirement, analysis and plan."""
         prompt = f"""
         Based on this UI requirement: '{requirement}'
@@ -140,7 +142,9 @@ class AgentService:
         If anything is unclear or not feasible, explain why in your code comments.
         """
         
-        return await self.llm_service.generate_text(prompt)
+        # Use generate() instead of generate_text() to utilize memory features
+        result = await self.llm_service.generate(prompt)
+        return result
     
     async def _generate_feedback(self, requirement: str, analysis: str) -> str:
         """Generate feedback when the requirement is too vague or not feasible."""
