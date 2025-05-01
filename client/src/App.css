@@ -109,11 +109,32 @@
   overflow: hidden;
 }
 
-.code-section h3 {
-  margin: 0;
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding: 10px 15px;
   background-color: #282c34;
   color: white;
+}
+
+.code-header h3 {
+  margin: 0;
+}
+
+.copy-button {
+  background-color: #4a4e57;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 5px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.copy-button:hover {
+  background-color: #61dafb;
 }
 
 .code-display {
