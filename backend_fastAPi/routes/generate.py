@@ -1,17 +1,21 @@
-from fastapi import APIRouter, HTTPException, status # type: ignore
+from fastapi import APIRouter, HTTPException, status
 from typing import Dict, Any
+import logging
+import json
 
 from models.request_models import GenerateRequest
 from models.response_models import GenerateResponse
 from services.agent_service import AgentService
-from services.llm_service import LLMServiceError
+from services.llm_service import LLMService, LLMServiceError
 
 router = APIRouter(tags=["generate"])
 
 agent_service = AgentService()
+llm_service = LLMService()
+logger = logging.getLogger(__name__)
 
 @router.post("/generate", response_model=GenerateResponse, status_code=status.HTTP_200_OK)
-async def generate_ui(request: GenerateRequest) -> Dict[str, Any]:
+async def generate_ui(request: GenerateRequest) -> GenerateResponse:
     """
     Generate UI (HTML, CSS, JavaScript) based on the provided requirement
     """
@@ -22,8 +26,13 @@ async def generate_ui(request: GenerateRequest) -> Dict[str, Any]:
                 detail="Requirement cannot be empty"
             )
             
-        result = await agent_service.process_requirement(request.requirement)
-        return result
+        # Get code blocks from LLM service
+        result = await llm_service.generate(request.requirement)
+        
+        # Pretty print for debugging
+        logger.debug("Generated code:\n" + json.dumps(result, indent=2))
+        
+        return GenerateResponse(**result)
         
     except LLMServiceError as e:
         raise HTTPException(
@@ -31,6 +40,7 @@ async def generate_ui(request: GenerateRequest) -> Dict[str, Any]:
             detail=f"LLM service error: {str(e)}"
         )
     except Exception as e:
+        logger.error(f"Unexpected error: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An unexpected error occurred: {str(e)}"
