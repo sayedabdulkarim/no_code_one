@@ -18,11 +18,14 @@ class AgentService:
         Returns:
             A dictionary with the generated HTML, CSS, and JavaScript, plus additional details
         """
+        # Check if this is a modification request
+        is_modification = self._is_modification_request(requirement)
+        
         # Step 1: Analyze the requirement
-        analysis = await self._analyze_requirement(requirement)
+        analysis = await self._analyze_requirement(requirement, is_modification)
         
         # Step 2: Create a plan for implementation
-        plan = await self._plan_implementation(requirement, analysis)
+        plan = await self._plan_implementation(requirement, analysis, is_modification)
         
         # Step 3: Generate the UI code based on the analysis and plan
         generation_result = await self._generate_ui_code(requirement, analysis, plan)
@@ -44,41 +47,81 @@ class AgentService:
             "feedback": feedback
         }
     
-    async def _analyze_requirement(self, requirement: str) -> str:
-        """Analyze the user requirement to understand what's needed."""
-        prompt = f"""
-        You are a UI development expert. Carefully analyze the following UI requirement:
+    def _is_modification_request(self, requirement: str) -> bool:
+        """Check if the requirement is requesting a modification to an existing UI."""
+        modification_keywords = [
+            "add", "change", "modify", "update", "remove", "delete", 
+            "reset button", "alter", "adjust", "extend", "enhance"
+        ]
         
-        '{requirement}'
-        
-        Provide a detailed analysis of what this UI requires:
-        1. Core functionality needed
-        2. UI components required
-        3. Potential challenges or ambiguities
-        4. Any missing information that might be needed
-        
-        Return only your analysis, formatted clearly.
-        """
-        
-        return await self.llm_service.generate(prompt)
+        requirement_lower = requirement.lower()
+        return any(keyword in requirement_lower for keyword in modification_keywords)
     
-    async def _plan_implementation(self, requirement: str, analysis: str) -> str:
+    async def _analyze_requirement(self, requirement: str, is_modification: bool) -> str:
+        """Analyze the user requirement to understand what's needed."""
+        if is_modification:
+            prompt = f"""
+            You are a UI development expert. Carefully analyze the following UI modification requirement:
+            
+            '{requirement}'
+            
+            Provide a detailed analysis of what needs to be modified:
+            1. What existing components need to be changed
+            2. What new components need to be added
+            3. What functionality needs to be updated
+            4. Any potential challenges or conflicts
+            
+            Return only your analysis, formatted clearly.
+            """
+        else:
+            prompt = f"""
+            You are a UI development expert. Carefully analyze the following UI requirement:
+            
+            '{requirement}'
+            
+            Provide a detailed analysis of what this UI requires:
+            1. Core functionality needed
+            2. UI components required
+            3. Potential challenges or ambiguities
+            4. Any missing information that might be needed
+            
+            Return only your analysis, formatted clearly.
+            """
+        
+        return await self.llm_service.generate_text(prompt)
+    
+    async def _plan_implementation(self, requirement: str, analysis: str, is_modification: bool) -> str:
         """Create a plan for implementing the UI based on the analysis."""
-        prompt = f"""
-        Based on this UI requirement: '{requirement}'
+        if is_modification:
+            prompt = f"""
+            Based on this UI modification requirement: '{requirement}'
+            
+            And this analysis: '{analysis}'
+            
+            Create a step-by-step plan to implement the modifications:
+            1. HTML elements to add or change
+            2. CSS styles to add or update
+            3. JavaScript functionality to modify
+            4. Implementation order that ensures backward compatibility
+            
+            Return only the concrete implementation plan, formatted as a clear list.
+            """
+        else:
+            prompt = f"""
+            Based on this UI requirement: '{requirement}'
+            
+            And this analysis: '{analysis}'
+            
+            Create a step-by-step plan to implement the UI:
+            1. HTML structure required
+            2. CSS styling approach 
+            3. JavaScript functionality needed
+            4. Implementation order
+            
+            Return only the concrete implementation plan, formatted as a clear list.
+            """
         
-        And this analysis: '{analysis}'
-        
-        Create a step-by-step plan to implement the UI:
-        1. HTML structure required
-        2. CSS styling approach 
-        3. JavaScript functionality needed
-        4. Implementation order
-        
-        Return only the concrete implementation plan, formatted as a clear list.
-        """
-        
-        return await self.llm_service.generate(prompt)
+        return await self.llm_service.generate_text(prompt)
     
     async def _generate_ui_code(self, requirement: str, analysis: str, plan: str) -> str:
         """Generate the actual UI code based on the requirement, analysis and plan."""
@@ -97,7 +140,7 @@ class AgentService:
         If anything is unclear or not feasible, explain why in your code comments.
         """
         
-        return await self.llm_service.generate(prompt)
+        return await self.llm_service.generate_text(prompt)
     
     async def _generate_feedback(self, requirement: str, analysis: str) -> str:
         """Generate feedback when the requirement is too vague or not feasible."""
@@ -116,7 +159,7 @@ class AgentService:
         Format this as helpful feedback to the user.
         """
         
-        return await self.llm_service.generate(prompt)
+        return await self.llm_service.generate_text(prompt)
     
     def _extract_code_blocks(self, text: str) -> tuple[str, str, str]:
         """Extract HTML, CSS, and JavaScript code blocks from the generated text."""
