@@ -1,12 +1,12 @@
 .App {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  font-family: Arial, sans-serif;
-  background-color: #f5f5f5;
-  margin: 0;
+  text-align: center;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #f5f5f5;
+  min-height: 100vh;
 }
 
 .App-logo {
@@ -22,11 +22,8 @@
 
 .App-header {
   background-color: #282c34;
-  color: white;
   padding: 20px;
-  text-align: center;
-  font-size: 1.5rem;
-  font-weight: bold;
+  color: white;
 }
 
 .App-header h1 {
@@ -41,9 +38,9 @@
 }
 
 .App-main {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
 .requirement-form {
@@ -100,9 +97,9 @@
 }
 
 .code-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
 }
 
 .code-section {
@@ -126,39 +123,38 @@
 }
 
 .copy-button {
-  align-self: flex-start;
-  padding: 8px 15px;
-  background-color: #4caf50;
+  background-color: #4a4e57;
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 3px;
+  padding: 5px 10px;
+  font-size: 12px;
   cursor: pointer;
-  font-size: 14px;
   transition: background-color 0.3s;
 }
 
 .copy-button:hover {
-  background-color: #45a049;
+  background-color: #61dafb;
 }
 
 .code-display {
   padding: 15px;
-  background-color: #f8f8f8;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+  margin: 0;
+  max-height: 300px;
+  overflow: auto;
+  text-align: left;
   font-family: "Courier New", Courier, monospace;
   font-size: 14px;
   white-space: pre-wrap;
-  overflow: auto;
+  border-radius: 0 0 5px 5px;
+  background-color: #f8f8f8;
 }
 
 .preview-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
   background-color: white;
-  padding: 20px;
-  overflow-y: auto;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
 .preview-container h3 {
@@ -169,103 +165,10 @@
 }
 
 .preview-frame {
-  flex: 1;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  background-color: #f9f9f9;
-}
-
-.chat-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background-color: white;
-  border-right: 1px solid #ddd;
-  padding: 20px;
-  overflow-y: auto;
-}
-
-.chat-header {
-  font-size: 1.2rem;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
-.chat-box {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  overflow-y: auto;
-}
-
-.chat-message {
-  padding: 10px;
-  border-radius: 5px;
-  background-color: #f0f0f0;
-  margin-bottom: 10px;
-}
-
-.chat-message.user {
-  background-color: #e0f7fa;
-  align-self: flex-end;
-}
-
-.chat-message.agent {
-  background-color: #e8eaf6;
-  align-self: flex-start;
-}
-
-.chat-input-container {
-  display: flex;
-  margin-top: 10px;
-}
-
-.chat-input {
-  flex: 1;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 1rem;
-}
-
-.tabs-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background-color: white;
-  border-right: 1px solid #ddd;
-}
-
-.tabs-header {
-  display: flex;
-  border-bottom: 1px solid #ddd;
-  background-color: #f9f9f9;
-}
-
-.tabs-header button {
-  flex: 1;
-  padding: 10px;
+  width: 100%;
+  height: 500px;
   border: none;
-  background-color: transparent;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.tabs-header button:hover {
-  background-color: #e0e0e0;
-}
-
-.active-tab {
-  background-color: #ddd;
-  font-weight: bold;
-}
-
-.tabs-content {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
+  background-color: white;
 }
 
 @keyframes App-logo-spin {
