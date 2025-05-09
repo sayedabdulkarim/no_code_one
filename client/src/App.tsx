@@ -11,9 +11,14 @@ interface GenerateResponse {
   feedback?: string;
 }
 
+interface PRDResponse {
+  prd: string;
+}
+
 function App() {
   const [requirement, setRequirement] = useState("");
   const [loading, setLoading] = useState(false);
+  const [prd, setPRD] = useState<string | null>(null);
   const [response, setResponse] = useState<GenerateResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copyStatus, setCopyStatus] = useState<{ [key: string]: boolean }>({});
@@ -28,13 +33,38 @@ function App() {
 
     setLoading(true);
     setError(null);
+    setPRD(null);
+    setResponse(null);
 
     try {
-      const result = await axios.post<GenerateResponse>(
-        "http://localhost:8000/generate",
+      // First, generate the PRD
+      const prdResult = await axios.post<PRDResponse>(
+        "http://localhost:8000/generate-prd",
         { requirement }
       );
+      setPRD(prdResult.data.prd);
+    } catch (err) {
+      console.error("Error generating PRD:", err);
+      setError("Failed to generate PRD. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePRDApproval = async (approved: boolean) => {
+    if (!approved || !prd || !requirement) {
+      setPRD(null);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await axios.post<GenerateResponse>(
+        "http://localhost:8000/approve-prd",
+        { requirement, prd, approved }
+      );
       setResponse(result.data);
+      setPRD(null); // Clear PRD after approval
       setCopyStatus({});
     } catch (err) {
       console.error("Error generating UI:", err);
@@ -96,7 +126,31 @@ function App() {
 
         {error && <div className="error-message">{error}</div>}
 
-        {response && (
+        {prd && (
+          <div className="prd-container">
+            <h3>Product Requirements</h3>
+            <div className="prd-content">
+              <pre>{prd}</pre>
+            </div>
+            <div className="prd-actions">
+              <button
+                className="approve-button"
+                onClick={() => handlePRDApproval(true)}
+                disabled={loading}
+              >
+                {loading ? "Generating..." : "Approve & Generate Code"}
+              </button>
+              <button
+                className="reject-button"
+                onClick={() => handlePRDApproval(false)}
+              >
+                Reject & Start Over
+              </button>
+            </div>
+          </div>
+        )}
+
+        {response && !prd && (
           <div className="tabs-container">
             <div className="tabs-header">
               <button
@@ -188,7 +242,7 @@ function App() {
           </div>
         )}
 
-        {response && (
+        {response && !prd && (
           <div className="preview-container">
             <h3>Preview</h3>
             <iframe

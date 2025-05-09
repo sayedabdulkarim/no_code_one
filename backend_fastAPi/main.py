@@ -2,6 +2,7 @@ from fastapi import FastAPI # type: ignore
 from fastapi.middleware.cors import CORSMiddleware # type: ignore
 
 from routes.generate import router as generate_router
+from routes.prd import router as prd_router
 
 app = FastAPI(
     title="UI Generator AI Agent",
@@ -20,6 +21,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(generate_router)
+app.include_router(prd_router)
 
 if __name__ == "__main__":
     import uvicorn # type: ignore

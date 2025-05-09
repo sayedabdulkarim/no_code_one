@@ -22,8 +22,8 @@ class LLMService:
     """Service for interacting with the Replicate API."""
     
     def __init__(self):
-        self.base_url = "https://api.replicate.com/v1/models/meta/meta-llama-3-8b-instruct/predictions"
-        # self.base_url = "https://api.replicate.com/v1/models/anthropic/claude-3.5-sonnet/predictions"
+        # self.base_url = "https://api.replicate.com/v1/models/meta/meta-llama-3-8b-instruct/predictions"
+        self.base_url = "https://api.replicate.com/v1/models/anthropic/claude-3.5-sonnet/predictions"
         # self.base_url = "https://api.replicate.com/v1/models/anthropic/claude-3.7-sonnet/predictions"
         # self.base_url = "https://api.replicate.com/v1/models/anthropic/claude-3.7-sonnet/predictions"
         
