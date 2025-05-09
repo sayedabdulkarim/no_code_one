@@ -295,3 +295,38 @@ Example structure:
         except Exception as e:
             logger.error(f"Error: {str(e)}")
             raise LLMServiceError(f"Error: {str(e)}")
+
+    async def generate_ui(self, requirement: str) -> Dict[str, str]:
+        prompt = f"""
+        Based on this requirement: "{requirement}"
+        
+        Generate a complete frontend implementation using only HTML, CSS, and JavaScript.
+        Return ONLY a JSON object with the following structure:
+        {{
+            "index.html": "complete HTML content",
+            "style.css": "complete CSS content",
+            "script.js": "complete JavaScript content"
+        }}
+        
+        The code should be production-ready, well-structured, and fully functional.
+        Do not include any explanations or markdown - only the JSON object.
+        """
+        
+        try:
+            # Call your LLM with the prompt
+            response = await self._call_llm(prompt)
+            
+            # Parse the response as JSON
+            files = json.loads(response)
+            
+            # Validate the response structure
+            required_files = {"index.html", "style.css", "script.js"}
+            if not all(file in files for file in required_files):
+                raise LLMServiceError("Invalid response structure: missing required files")
+                
+            return files
+            
+        except json.JSONDecodeError as e:
+            raise LLMServiceError(f"Failed to parse LLM response as JSON: {str(e)}")
+        except Exception as e:
+            raise LLMServiceError(f"LLM service error: {str(e)}")

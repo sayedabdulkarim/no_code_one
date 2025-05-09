@@ -1,6 +1,6 @@
 import re
 from typing import Dict, Any, Optional
-from services.llm_service import LLMService
+from services.llm_service import LLMService, LLMServiceError
 
 class AgentService:
     """Service that implements AI agent behavior for UI generation."""
@@ -18,36 +18,14 @@ class AgentService:
         Returns:
             A dictionary with the generated HTML, CSS, and JavaScript, plus additional details
         """
-        # Check if this is a modification request
-        is_modification = self._is_modification_request(requirement)
-        
-        # Step 1: Analyze the requirement
-        analysis = await self._analyze_requirement(requirement, is_modification)
-        
-        # Step 2: Create a plan for implementation
-        plan = await self._plan_implementation(requirement, analysis, is_modification)
-        
-        # Step 3: Generate the UI code based on the analysis and plan
-        generation_result = await self._generate_ui_code(requirement, analysis, plan)
-        
-        # generation_result now directly contains the code blocks
-        html = generation_result.get('html', '')
-        css = generation_result.get('css', '')
-        javascript = generation_result.get('javascript', '')
-        
-        # Check if we need to provide feedback instead of partial code
-        feedback = None
-        if not (html or css or javascript):
-            feedback = await self._generate_feedback(requirement, analysis)
-        
-        return {
-            "html": html,
-            "css": css,
-            "javascript": javascript,
-            "analysis": analysis,
-            "plan": plan,
-            "feedback": feedback
-        }
+        try:
+            # Generate UI files
+            files = await self.llm_service.generate_ui(requirement)
+            
+            return {"files": files}
+            
+        except Exception as e:
+            raise LLMServiceError(f"Failed to process requirement: {str(e)}")
     
     def _is_modification_request(self, requirement: str) -> bool:
         """Check if the requirement is requesting a modification to an existing UI."""
