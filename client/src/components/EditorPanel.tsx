@@ -3,7 +3,7 @@ import Editor, { OnChange } from "@monaco-editor/react";
 import styled from "@emotion/styled";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
-import { formatCode, getParserForFile } from '../utils/codeFormatter';
+import { formatCode, getParserForFile } from "../utils/codeFormatter";
 
 interface EditorPanelProps {
   files: Record<string, string>;
@@ -98,7 +98,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
           <OptionsDropdownButton onClick={() => setShowOptions(!showOptions)}>
             Actions ▾
           </OptionsDropdownButton>
-          
+
           {showOptions && (
             <DropdownMenu>
               <MenuItem
@@ -109,9 +109,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
               >
                 {isFullScreen ? "Exit Fullscreen" : "Fullscreen Editor"}
               </MenuItem>
-              <MenuItem onClick={handleDownloadZip}>
-                Download as ZIP
-              </MenuItem>
+              <MenuItem onClick={handleDownloadZip}>Download as ZIP</MenuItem>
             </DropdownMenu>
           )}
         </Actions>
@@ -147,7 +145,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
         <PreviewFrame
           ref={previewRef}
           title="preview"
-          sandbox="allow-scripts allow-same-origin"
+          sandbox="allow-scripts allow-forms allow-same-origin"
         />
       </PreviewContainer>
     </Container>
@@ -188,14 +186,14 @@ const Tab = styled.button<{ active: boolean }>`
   position: relative;
 
   &:after {
-    content: "";
     position: absolute;
+    right: 0;
     bottom: 0;
     left: 0;
-    right: 0;
-    height: 2px;
     background: ${(props) =>
       props.active ? props.theme.colors.primary : "transparent"};
+    height: 2px;
+    content: "";
   }
 `;
 
