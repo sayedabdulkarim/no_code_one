@@ -215,6 +215,8 @@ function App() {
               onFileChange={setActiveFile}
               onCodeChange={handleCodeChange}
               getPreviewDocument={getPreviewDocument}
+              isFullScreen={isFullScreen}
+              onToggleFullscreen={() => setIsFullScreen(!isFullScreen)}
             />
           </WorkspaceLayout>
         )}
