@@ -143,31 +143,50 @@ function App() {
   return (
     <ThemeProvider theme={darkTheme}>
       <Layout>
-        <WorkspaceLayout isFullScreen={isFullScreen}>
-          <ToggleButton onClick={() => setIsFullScreen(!isFullScreen)}>
-            {isFullScreen ? "Show Chat" : "Full Screen"}
-          </ToggleButton>
-
-          {!isFullScreen && (
+        {!response ? (
+          <InitialLayout>
             <ChatThread
               messages={messages}
               onSendMessage={handleSendMessage}
               loading={loading}
             />
-          )}
-
-          {response && (
+          </InitialLayout>
+        ) : (
+          <WorkspaceLayout isFullScreen={isFullScreen}>
+            {!isFullScreen && (
+              <>
+                <ToggleButton onClick={() => setIsFullScreen(!isFullScreen)}>
+                  {isFullScreen ? "Show Chat" : "Full Screen"}
+                </ToggleButton>
+                <ChatThread
+                  messages={messages}
+                  onSendMessage={handleSendMessage}
+                  loading={loading}
+                />
+              </>
+            )}
             <EditorPanel
               files={response.files}
               activeFile={activeFile}
               onFileChange={setActiveFile}
               getPreviewDocument={getPreviewDocument}
             />
-          )}
-        </WorkspaceLayout>
+          </WorkspaceLayout>
+        )}
       </Layout>
     </ThemeProvider>
   );
 }
+
+const InitialLayout = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: ${(props) => props.theme.spacing.md};
+`;
 
 export default App;

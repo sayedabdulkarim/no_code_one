@@ -34,27 +34,30 @@ export const ChatThread: React.FC<ChatThreadProps> = ({
 
   return (
     <Container>
-      <MessagesContainer>
-        {messages.map((message, index) => (
-          <MessageBubble key={index} type={message.type}>
-            {message.category && <Category>{message.category}</Category>}
-            <Content>{message.content}</Content>
-          </MessageBubble>
-        ))}
-        <div ref={messagesEndRef} />
-      </MessagesContainer>
-
-      <InputForm onSubmit={handleSubmit}>
-        <Input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Describe the UI you want to create..."
-          disabled={loading}
-        />
-        <SendButton type="submit" disabled={loading || !input.trim()}>
-          {loading ? "Generating..." : "Send"}
-        </SendButton>
-      </InputForm>
+      <MessagesWrapper>
+        <MessagesContainer>
+          {messages.map((message, index) => (
+            <MessageBubble key={index} type={message.type}>
+              {message.category && <Category>{message.category}</Category>}
+              <Content>{message.content}</Content>
+            </MessageBubble>
+          ))}
+          <div ref={messagesEndRef} />
+        </MessagesContainer>
+      </MessagesWrapper>
+      <InputArea>
+        <InputForm onSubmit={handleSubmit}>
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Describe the UI you want to create..."
+            disabled={loading}
+          />
+          <SendButton type="submit" disabled={loading || !input.trim()}>
+            {loading ? "Generating..." : "Send"}
+          </SendButton>
+        </InputForm>
+      </InputArea>
     </Container>
   );
 };
@@ -62,14 +65,20 @@ export const ChatThread: React.FC<ChatThreadProps> = ({
 const Container = styled.div`
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: 100vh;
   background: ${(props) => props.theme.colors.background};
+  position: relative;
+`;
+
+const MessagesWrapper = styled.div`
+  flex: 1;
+  overflow: hidden;
+  padding: ${(props) => props.theme.spacing.md};
 `;
 
 const MessagesContainer = styled.div`
-  flex: 1;
+  height: 100%;
   overflow-y: auto;
-  padding: ${(props) => props.theme.spacing.md};
   display: flex;
   flex-direction: column;
   gap: ${(props) => props.theme.spacing.md};
@@ -97,6 +106,15 @@ const Category = styled.div`
 
 const Content = styled.div`
   white-space: pre-wrap;
+`;
+
+const InputArea = styled.div`
+  position: sticky;
+  bottom: 0;
+  width: 100%;
+  background: ${(props) => props.theme.colors.background};
+  padding: ${(props) => props.theme.spacing.md};
+  border-top: 1px solid ${(props) => props.theme.colors.border};
 `;
 
 const InputForm = styled.form`
