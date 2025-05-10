@@ -1,11 +1,12 @@
-import React from "react";
-import Editor from "@monaco-editor/react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import Editor, { OnChange } from "@monaco-editor/react";
 import styled from "@emotion/styled";
 
 interface EditorPanelProps {
-  files: Record<string, string> | undefined;
+  files: Record<string, string>;
   activeFile: string;
   onFileChange: (filename: string) => void;
+  onCodeChange?: (filename: string, content: string) => void;
   getPreviewDocument: () => string;
 }
 
@@ -17,84 +18,132 @@ const getLanguageFromFilename = (filename: string): string => {
 };
 
 export const EditorPanel: React.FC<EditorPanelProps> = ({
-  files = {}, // Provide default empty object
+  files,
   activeFile,
   onFileChange,
+  onCodeChange,
   getPreviewDocument,
-}) => (
-  <Container>
-    <TabList>
-      {Object.keys(files).map((filename) => (
-        <Tab
-          key={filename}
-          active={filename === activeFile}
-          onClick={() => onFileChange(filename)}
-        >
-          {filename}
-        </Tab>
-      ))}
-    </TabList>
+}) => {
+  const previewRef = useRef<HTMLIFrameElement>(null);
 
-    <EditorWrapper>
-      <Editor
-        height="100%"
-        language={getLanguageFromFilename(activeFile)}
-        value={files[activeFile]}
-        theme="vs-dark"
-        options={{
-          minimap: { enabled: false },
-          fontSize: 14,
-        }}
-      />
-    </EditorWrapper>
+  const handleEditorChange = useCallback(
+    (value: string | undefined) => {
+      if (value !== undefined && onCodeChange) {
+        onCodeChange(activeFile, value);
+      }
+    },
+    [activeFile, onCodeChange]
+  );
 
-    <PreviewFrame
-      title="preview"
-      srcDoc={getPreviewDocument()}
-      sandbox="allow-scripts"
-    />
-  </Container>
-);
+  useEffect(() => {
+    if (previewRef.current) {
+      const previewContent = getPreviewDocument();
+      previewRef.current.srcdoc = previewContent;
+    }
+  }, [files, getPreviewDocument]);
+
+  return (
+    <Container>
+      <TabList>
+        {Object.keys(files).map((filename) => (
+          <Tab
+            key={filename}
+            active={filename === activeFile}
+            onClick={() => onFileChange(filename)}
+          >
+            {filename}
+          </Tab>
+        ))}
+      </TabList>
+
+      <EditorContainer>
+        <Editor
+          height="60vh"
+          language={getLanguageFromFilename(activeFile)}
+          value={files[activeFile]}
+          theme="vs-dark"
+          onChange={handleEditorChange}
+          options={{
+            minimap: { enabled: false },
+            fontSize: 14,
+            scrollBeyondLastLine: false,
+            automaticLayout: true,
+            tabSize: 2,
+          }}
+        />
+      </EditorContainer>
+
+      <PreviewContainer>
+        <PreviewHeader>Preview</PreviewHeader>
+        <PreviewFrame
+          ref={previewRef}
+          title="preview"
+          sandbox="allow-scripts allow-same-origin"
+        />
+      </PreviewContainer>
+    </Container>
+  );
+};
 
 const Container = styled.div`
   display: flex;
   flex-direction: column;
-  gap: ${(props) => props.theme.spacing.md};
   height: 100%;
+  background: ${(props) => props.theme.colors.background};
+  overflow: hidden;
 `;
 
 const TabList = styled.div`
   display: flex;
-  gap: 2px;
   background: ${(props) => props.theme.colors.surface};
-  padding: 4px;
-  border-radius: 4px;
+  border-bottom: 1px solid ${(props) => props.theme.colors.border};
 `;
 
 const Tab = styled.button<{ active: boolean }>`
   padding: 8px 16px;
   background: ${(props) =>
-    props.active ? props.theme.colors.primary : "transparent"};
+    props.active ? props.theme.colors.surface : props.theme.colors.background};
   color: ${(props) => props.theme.colors.text};
   border: none;
+  border-right: 1px solid ${(props) => props.theme.colors.border};
   cursor: pointer;
-  border-radius: 4px;
+  font-size: 13px;
+  position: relative;
 
-  &:hover {
-    background: ${(props) => !props.active && props.theme.colors.border};
+  &:after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: ${(props) =>
+      props.active ? props.theme.colors.primary : "transparent"};
   }
 `;
 
-const EditorWrapper = styled.div`
+const EditorContainer = styled.div`
   flex: 1;
+  min-height: 0;
   border: 1px solid ${(props) => props.theme.colors.border};
-  border-radius: 4px;
-  overflow: hidden;
+`;
+
+const PreviewContainer = styled.div`
+  height: 40vh;
+  border-top: 1px solid ${(props) => props.theme.colors.border};
+`;
+
+const PreviewHeader = styled.div`
+  padding: 4px 8px;
+  background: ${(props) => props.theme.colors.surface};
+  color: ${(props) => props.theme.colors.text};
+  font-size: 12px;
+  border-bottom: 1px solid ${(props) => props.theme.colors.border};
 `;
 
 const PreviewFrame = styled.iframe`
-  height: 300px;
-  border: 1px solid ${(props) => props.theme.colors.border};
-  border-radius: 4px;
+  width: 100%;
+  height: calc(100% - 25px);
+  border: none;
   background: white;
 `;

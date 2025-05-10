@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Editor from "@monaco-editor/react";
 import { ThemeProvider } from "@emotion/react";
 import styled from "@emotion/styled";
@@ -39,6 +39,7 @@ function App() {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [activeFile, setActiveFile] = useState("index.html");
   const [messages, setMessages] = useState<Message[]>([]);
+  const [files, setFiles] = useState<Record<string, string>>({});
 
   const handleSendMessage = async (message: string) => {
     setMessages((prev) => [
@@ -144,20 +145,35 @@ function App() {
   };
 
   const getPreviewDocument = () => {
-    if (!response) return "";
+    // Use the files state instead of response.files for live updates
+    if (!files || Object.keys(files).length === 0) return "";
 
     return `
       <html>
         <head>
-          <style>${response.files["style.css"]}</style>
+          <style>${files["style.css"] || ""}</style>
         </head>
         <body>
-          ${response.files["index.html"]}
-          <script>${response.files["script.js"]}</script>
+          ${files["index.html"] || ""}
+          <script>${files["script.js"] || ""}</script>
         </body>
       </html>
     `;
   };
+
+  const handleCodeChange = (filename: string, content: string) => {
+    setFiles((prev) => ({
+      ...prev,
+      [filename]: content,
+    }));
+  };
+
+  // Initialize files when response changes
+  useEffect(() => {
+    if (response?.files) {
+      setFiles(response.files);
+    }
+  }, [response]);
 
   return (
     <ThemeProvider theme={darkTheme}>
@@ -194,9 +210,10 @@ function App() {
             )}
 
             <EditorPanel
-              files={response.files}
+              files={files} // Use files state instead of response.files
               activeFile={activeFile}
               onFileChange={setActiveFile}
+              onCodeChange={handleCodeChange}
               getPreviewDocument={getPreviewDocument}
             />
           </WorkspaceLayout>
