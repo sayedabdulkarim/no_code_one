@@ -52,6 +52,7 @@ function App() {
 
     setLoading(true);
     try {
+      // Generate PRD first
       const prdResult = await axios.post<PRDResponse>(
         "http://localhost:8000/generate-prd",
         { requirement: message }
@@ -66,11 +67,36 @@ function App() {
         },
       ]);
 
+      // Set PRD and wait for approval
       setPRD(prdResult.data.prd);
+      setRequirement(message);
+    } catch (err) {
+      console.error("Error:", err);
+      setError("Something went wrong. Please try again.");
+      setMessages((prev) => [
+        ...prev,
+        {
+          type: "agent",
+          content: "Sorry, there was an error. Please try again.",
+          category: "error",
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  const handlePRDApproval = async (approved: boolean) => {
+    if (!approved || !prd || !requirement) {
+      setPRD(null);
+      return;
+    }
+
+    setLoading(true);
+    try {
       const result = await axios.post<GenerateResponse>(
         "http://localhost:8000/approve-prd",
-        { requirement: message, prd: prdResult.data.prd, approved: true }
+        { requirement, prd, approved }
       );
 
       if (result.data.analysis) {
@@ -95,17 +121,10 @@ function App() {
       }
 
       setResponse(result.data);
+      setPRD(null);
     } catch (err) {
       console.error("Error:", err);
-      setError("Something went wrong. Please try again.");
-      setMessages((prev) => [
-        ...prev,
-        {
-          type: "agent",
-          content: "Sorry, there was an error. Please try again.",
-          category: "error",
-        },
-      ]);
+      setError("Failed to generate UI. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -143,7 +162,16 @@ function App() {
   return (
     <ThemeProvider theme={darkTheme}>
       <Layout>
-        {!response ? (
+        {prd ? (
+          <InitialLayout>
+            <PRDPanel
+              prd={prd}
+              loading={loading}
+              onApprove={() => handlePRDApproval(true)}
+              onReject={() => handlePRDApproval(false)}
+            />
+          </InitialLayout>
+        ) : !response ? (
           <InitialLayout>
             <ChatThread
               messages={messages}
@@ -153,18 +181,18 @@ function App() {
           </InitialLayout>
         ) : (
           <WorkspaceLayout isFullScreen={isFullScreen}>
+            <ToggleButton onClick={() => setIsFullScreen(!isFullScreen)}>
+              {isFullScreen ? "Show Chat" : "Full Screen"}
+            </ToggleButton>
+
             {!isFullScreen && (
-              <>
-                <ToggleButton onClick={() => setIsFullScreen(!isFullScreen)}>
-                  {isFullScreen ? "Show Chat" : "Full Screen"}
-                </ToggleButton>
-                <ChatThread
-                  messages={messages}
-                  onSendMessage={handleSendMessage}
-                  loading={loading}
-                />
-              </>
+              <ChatThread
+                messages={messages}
+                onSendMessage={handleSendMessage}
+                loading={loading}
+              />
             )}
+
             <EditorPanel
               files={response.files}
               activeFile={activeFile}

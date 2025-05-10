@@ -111,7 +111,6 @@ const Content = styled.div`
 const InputArea = styled.div`
   position: sticky;
   bottom: 0;
-  width: 100%;
   background: ${(props) => props.theme.colors.background};
   padding: ${(props) => props.theme.spacing.md};
   border-top: 1px solid ${(props) => props.theme.colors.border};
