@@ -10,6 +10,8 @@ import { EditorPanel } from "./components/EditorPanel";
 import { Layout, ToggleButton, WorkspaceLayout } from "./components/Layout";
 import { PRDPanel } from "./components/PRDPanel";
 import { ChatPanel } from "./components/ChatPanel";
+import { ChatThread } from "./components/ChatThread";
+import { Message, MessageCategory } from "./types/chat";
 
 interface GenerateResponse {
   files: {
@@ -36,52 +38,74 @@ function App() {
   const [activeTab, setActiveTab] = useState("chat");
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [activeFile, setActiveFile] = useState("index.html");
+  const [messages, setMessages] = useState<Message[]>([]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!requirement.trim()) {
-      setError("Please enter a requirement");
-      return;
-    }
+  const handleSendMessage = async (message: string) => {
+    setMessages((prev) => [
+      ...prev,
+      {
+        type: "user",
+        content: message,
+        category: "requirement",
+      },
+    ]);
 
     setLoading(true);
-    setError(null);
-    setPRD(null);
-    setResponse(null);
-
     try {
-      // First, generate the PRD
       const prdResult = await axios.post<PRDResponse>(
         "http://localhost:8000/generate-prd",
-        { requirement }
+        { requirement: message }
       );
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          type: "agent",
+          content: prdResult.data.prd,
+          category: "prd",
+        },
+      ]);
+
       setPRD(prdResult.data.prd);
-    } catch (err) {
-      console.error("Error generating PRD:", err);
-      setError("Failed to generate PRD. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const handlePRDApproval = async (approved: boolean) => {
-    if (!approved || !prd || !requirement) {
-      setPRD(null);
-      return;
-    }
-
-    setLoading(true);
-    try {
       const result = await axios.post<GenerateResponse>(
         "http://localhost:8000/approve-prd",
-        { requirement, prd, approved }
+        { requirement: message, prd: prdResult.data.prd, approved: true }
       );
+
+      if (result.data.analysis) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            type: "agent",
+            content: result.data.analysis!,
+            category: "analysis",
+          },
+        ]);
+      }
+      if (result.data.plan) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            type: "agent",
+            content: result.data.plan!,
+            category: "plan",
+          },
+        ]);
+      }
+
       setResponse(result.data);
-      setPRD(null); // Clear PRD after approval
-      setCopyStatus({});
     } catch (err) {
-      console.error("Error generating UI:", err);
-      setError("Failed to generate UI. Please try again.");
+      console.error("Error:", err);
+      setError("Something went wrong. Please try again.");
+      setMessages((prev) => [
+        ...prev,
+        {
+          type: "agent",
+          content: "Sorry, there was an error. Please try again.",
+          category: "error",
+        },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -119,42 +143,28 @@ function App() {
   return (
     <ThemeProvider theme={darkTheme}>
       <Layout>
-        {!response && !prd ? (
-          <RequirementForm
-            requirement={requirement}
-            setRequirement={setRequirement}
-            onSubmit={handleSubmit}
-            loading={loading}
-          />
-        ) : prd ? (
-          <PRDPanel
-            prd={prd}
-            loading={loading}
-            onApprove={() => handlePRDApproval(true)}
-            onReject={() => handlePRDApproval(false)}
-          />
-        ) : (
-          <WorkspaceLayout isFullScreen={isFullScreen}>
-            <ToggleButton onClick={() => setIsFullScreen(!isFullScreen)}>
-              {isFullScreen ? "Show Chat" : "Full Screen"}
-            </ToggleButton>
+        <WorkspaceLayout isFullScreen={isFullScreen}>
+          <ToggleButton onClick={() => setIsFullScreen(!isFullScreen)}>
+            {isFullScreen ? "Show Chat" : "Full Screen"}
+          </ToggleButton>
 
-            {!isFullScreen && (
-              <ChatPanel
-                analysis={response?.analysis}
-                plan={response?.plan}
-                feedback={response?.feedback}
-              />
-            )}
+          {!isFullScreen && (
+            <ChatThread
+              messages={messages}
+              onSendMessage={handleSendMessage}
+              loading={loading}
+            />
+          )}
 
+          {response && (
             <EditorPanel
-              files={response?.files}
+              files={response.files}
               activeFile={activeFile}
               onFileChange={setActiveFile}
               getPreviewDocument={getPreviewDocument}
             />
-          </WorkspaceLayout>
-        )}
+          )}
+        </WorkspaceLayout>
       </Layout>
     </ThemeProvider>
   );
