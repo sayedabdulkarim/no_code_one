@@ -3,6 +3,7 @@ import Editor, { OnChange } from "@monaco-editor/react";
 import styled from "@emotion/styled";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
+import { formatCode, getParserForFile } from '../utils/codeFormatter';
 
 interface EditorPanelProps {
   files: Record<string, string>;
@@ -58,6 +59,19 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
     setShowOptions(false);
   }, [files]);
 
+  const getFormattedCode = useCallback((content: string, filename: string) => {
+    return formatCode(content, getParserForFile(filename));
+  }, []);
+
+  useEffect(() => {
+    if (files[activeFile]) {
+      const formatted = getFormattedCode(files[activeFile], activeFile);
+      if (formatted !== files[activeFile]) {
+        onCodeChange?.(activeFile, formatted);
+      }
+    }
+  }, [activeFile, files, getFormattedCode, onCodeChange]);
+
   useEffect(() => {
     if (previewRef.current) {
       const previewContent = getPreviewDocument();
@@ -80,27 +94,27 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
           ))}
         </TabList>
 
-        <OptionsWrapper>
-          <OptionsButton onClick={() => setShowOptions(!showOptions)}>
-            Options ▾
-          </OptionsButton>
-
+        <Actions>
+          <OptionsDropdownButton onClick={() => setShowOptions(!showOptions)}>
+            Actions ▾
+          </OptionsDropdownButton>
+          
           {showOptions && (
-            <OptionsDropdown>
-              <OptionItem
+            <DropdownMenu>
+              <MenuItem
                 onClick={() => {
                   onToggleFullscreen();
                   setShowOptions(false);
                 }}
               >
                 {isFullScreen ? "Exit Fullscreen" : "Fullscreen Editor"}
-              </OptionItem>
-              <OptionItem onClick={handleDownloadZip}>
+              </MenuItem>
+              <MenuItem onClick={handleDownloadZip}>
                 Download as ZIP
-              </OptionItem>
-            </OptionsDropdown>
+              </MenuItem>
+            </DropdownMenu>
           )}
-        </OptionsWrapper>
+        </Actions>
       </HeaderContainer>
 
       <EditorContainer>
@@ -110,12 +124,20 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
           value={files[activeFile]}
           theme="vs-dark"
           onChange={handleEditorChange}
+          onMount={(editor) => {
+            const formatted = getFormattedCode(files[activeFile], activeFile);
+            if (formatted !== files[activeFile]) {
+              onCodeChange?.(activeFile, formatted);
+            }
+          }}
           options={{
             minimap: { enabled: false },
             fontSize: 14,
             scrollBeyondLastLine: false,
             automaticLayout: true,
             tabSize: 2,
+            formatOnPaste: true,
+            formatOnType: true,
           }}
         />
       </EditorContainer>
@@ -201,6 +223,57 @@ const PreviewFrame = styled.iframe`
   height: calc(100% - 25px);
   border: none;
   background: white;
+`;
+
+const Actions = styled.div`
+  position: relative;
+  margin-right: ${(props) => props.theme.spacing.md};
+`;
+
+const OptionsDropdownButton = styled.button`
+  padding: 8px 16px;
+  background: ${(props) => props.theme.colors.surface};
+  color: ${(props) => props.theme.colors.text};
+  border: 1px solid ${(props) => props.theme.colors.border};
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+
+  &:hover {
+    background: ${(props) => props.theme.colors.background};
+  }
+`;
+
+const DropdownMenu = styled.div`
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: #333;
+  border: 1px solid ${(props) => props.theme.colors.border};
+  border-radius: 4px;
+  min-width: 180px;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+`;
+
+const MenuItem = styled.button`
+  width: 100%;
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  color: #eee;
+  text-align: left;
+  cursor: pointer;
+  font-size: 13px;
+
+  &:hover {
+    background: #444;
+  }
+
+  & + & {
+    border-top: 1px solid ${(props) => props.theme.colors.border};
+  }
 `;
 
 const OptionsWrapper = styled.div`

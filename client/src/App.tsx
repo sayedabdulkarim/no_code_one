@@ -197,10 +197,6 @@ function App() {
           </InitialLayout>
         ) : (
           <WorkspaceLayout isFullScreen={isFullScreen}>
-            <ToggleButton onClick={() => setIsFullScreen(!isFullScreen)}>
-              {isFullScreen ? "Show Chat" : "Full Screen"}
-            </ToggleButton>
-
             {!isFullScreen && (
               <ChatThread
                 messages={messages}
