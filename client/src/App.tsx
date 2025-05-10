@@ -1,6 +1,15 @@
 import React, { useState } from "react";
+import Editor from "@monaco-editor/react";
+import { ThemeProvider } from "@emotion/react";
+import styled from "@emotion/styled";
+import { darkTheme } from "./theme";
+import { RequirementForm } from "./components/RequirementForm";
 import axios from "axios";
 import "./App.css";
+import { EditorPanel } from "./components/EditorPanel";
+import { Layout, ToggleButton, WorkspaceLayout } from "./components/Layout";
+import { PRDPanel } from "./components/PRDPanel";
+import { ChatPanel } from "./components/ChatPanel";
 
 interface GenerateResponse {
   files: {
@@ -25,6 +34,8 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [copyStatus, setCopyStatus] = useState<{ [key: string]: boolean }>({});
   const [activeTab, setActiveTab] = useState("chat");
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [activeFile, setActiveFile] = useState("index.html");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,169 +117,46 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>No-Code UI Generator</h1>
-        <p>Describe what you want to create and get instant code</p>
-      </header>
-
-      <main className="App-main">
-        <form onSubmit={handleSubmit} className="requirement-form">
-          <textarea
-            value={requirement}
-            onChange={(e) => setRequirement(e.target.value)}
-            placeholder="Describe the UI you want to create... (e.g., Create a login form with username and password fields)"
-            rows={5}
-            className="requirement-input"
+    <ThemeProvider theme={darkTheme}>
+      <Layout>
+        {!response && !prd ? (
+          <RequirementForm
+            requirement={requirement}
+            setRequirement={setRequirement}
+            onSubmit={handleSubmit}
+            loading={loading}
           />
-          <button type="submit" className="submit-button" disabled={loading}>
-            {loading ? "Generating..." : "Generate UI"}
-          </button>
-        </form>
+        ) : prd ? (
+          <PRDPanel
+            prd={prd}
+            loading={loading}
+            onApprove={() => handlePRDApproval(true)}
+            onReject={() => handlePRDApproval(false)}
+          />
+        ) : (
+          <WorkspaceLayout isFullScreen={isFullScreen}>
+            <ToggleButton onClick={() => setIsFullScreen(!isFullScreen)}>
+              {isFullScreen ? "Show Chat" : "Full Screen"}
+            </ToggleButton>
 
-        {error && <div className="error-message">{error}</div>}
+            {!isFullScreen && (
+              <ChatPanel
+                analysis={response?.analysis}
+                plan={response?.plan}
+                feedback={response?.feedback}
+              />
+            )}
 
-        {prd && (
-          <div className="prd-container">
-            <h3>Product Requirements</h3>
-            <div className="prd-content">
-              <pre>{prd}</pre>
-            </div>
-            <div className="prd-actions">
-              <button
-                className="approve-button"
-                onClick={() => handlePRDApproval(true)}
-                disabled={loading}
-              >
-                {loading ? "Generating..." : "Approve & Generate Code"}
-              </button>
-              <button
-                className="reject-button"
-                onClick={() => handlePRDApproval(false)}
-              >
-                Reject & Start Over
-              </button>
-            </div>
-          </div>
-        )}
-
-        {response && !prd && (
-          <div className="tabs-container">
-            <div className="tabs-header">
-              <button
-                className={activeTab === "chat" ? "active-tab" : ""}
-                onClick={() => setActiveTab("chat")}
-              >
-                Chat
-              </button>
-              <button
-                className={activeTab === "html" ? "active-tab" : ""}
-                onClick={() => setActiveTab("html")}
-              >
-                HTML
-              </button>
-              <button
-                className={activeTab === "css" ? "active-tab" : ""}
-                onClick={() => setActiveTab("css")}
-              >
-                CSS
-              </button>
-              <button
-                className={activeTab === "javascript" ? "active-tab" : ""}
-                onClick={() => setActiveTab("javascript")}
-              >
-                JavaScript
-              </button>
-            </div>
-
-            <div className="tabs-content">
-              {activeTab === "chat" && response.analysis && (
-                <div className="chat-container">
-                  <div className="chat-box">
-                    {response.analysis && (
-                      <div className="chat-message agent">
-                        {response.analysis}
-                      </div>
-                    )}
-                    {response.plan && (
-                      <div className="chat-message agent">{response.plan}</div>
-                    )}
-                    {response.feedback && (
-                      <div className="chat-message agent">
-                        {response.feedback}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {activeTab === "html" && (
-                <div className="code-container">
-                  <h3>HTML</h3>
-                  <pre className="code-display">
-                    {response.files["index.html"]}
-                  </pre>
-                  <button
-                    className="copy-button"
-                    onClick={() =>
-                      copyToClipboard(response.files["index.html"], "html")
-                    }
-                  >
-                    {copyStatus["html"] ? "Copied!" : "Copy Code"}
-                  </button>
-                </div>
-              )}
-
-              {activeTab === "css" && (
-                <div className="code-container">
-                  <h3>CSS</h3>
-                  <pre className="code-display">
-                    {response.files["style.css"]}
-                  </pre>
-                  <button
-                    className="copy-button"
-                    onClick={() =>
-                      copyToClipboard(response.files["style.css"], "css")
-                    }
-                  >
-                    {copyStatus["css"] ? "Copied!" : "Copy Code"}
-                  </button>
-                </div>
-              )}
-
-              {activeTab === "javascript" && (
-                <div className="code-container">
-                  <h3>JavaScript</h3>
-                  <pre className="code-display">
-                    {response.files["script.js"]}
-                  </pre>
-                  <button
-                    className="copy-button"
-                    onClick={() =>
-                      copyToClipboard(response.files["script.js"], "javascript")
-                    }
-                  >
-                    {copyStatus["javascript"] ? "Copied!" : "Copy Code"}
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {response && !prd && (
-          <div className="preview-container">
-            <h3>Preview</h3>
-            <iframe
-              title="preview"
-              className="preview-frame"
-              srcDoc={getPreviewDocument()}
-              sandbox="allow-scripts"
+            <EditorPanel
+              files={response?.files}
+              activeFile={activeFile}
+              onFileChange={setActiveFile}
+              getPreviewDocument={getPreviewDocument}
             />
-          </div>
+          </WorkspaceLayout>
         )}
-      </main>
-    </div>
+      </Layout>
+    </ThemeProvider>
   );
 }
 
