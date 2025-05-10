@@ -3,9 +3,11 @@ import axios from "axios";
 import "./App.css";
 
 interface GenerateResponse {
-  html: string;
-  css: string;
-  javascript: string;
+  files: {
+    "index.html": string;
+    "style.css": string;
+    "script.js": string;
+  };
   analysis?: string;
   plan?: string;
   feedback?: string;
@@ -93,11 +95,11 @@ function App() {
     return `
       <html>
         <head>
-          <style>${response.css}</style>
+          <style>${response.files["style.css"]}</style>
         </head>
         <body>
-          ${response.html}
-          <script>${response.javascript}</script>
+          ${response.files["index.html"]}
+          <script>${response.files["script.js"]}</script>
         </body>
       </html>
     `;
@@ -180,15 +182,17 @@ function App() {
             </div>
 
             <div className="tabs-content">
-              {activeTab === "chat" && (
+              {activeTab === "chat" && response.analysis && (
                 <div className="chat-container">
                   <div className="chat-box">
-                    <div className="chat-message agent">
-                      {response.analysis || "No analysis available."}
-                    </div>
-                    <div className="chat-message agent">
-                      {response.plan || "No plan available."}
-                    </div>
+                    {response.analysis && (
+                      <div className="chat-message agent">
+                        {response.analysis}
+                      </div>
+                    )}
+                    {response.plan && (
+                      <div className="chat-message agent">{response.plan}</div>
+                    )}
                     {response.feedback && (
                       <div className="chat-message agent">
                         {response.feedback}
@@ -201,10 +205,14 @@ function App() {
               {activeTab === "html" && (
                 <div className="code-container">
                   <h3>HTML</h3>
-                  <pre className="code-display">{response.html}</pre>
+                  <pre className="code-display">
+                    {response.files["index.html"]}
+                  </pre>
                   <button
                     className="copy-button"
-                    onClick={() => copyToClipboard(response.html, "html")}
+                    onClick={() =>
+                      copyToClipboard(response.files["index.html"], "html")
+                    }
                   >
                     {copyStatus["html"] ? "Copied!" : "Copy Code"}
                   </button>
@@ -214,10 +222,14 @@ function App() {
               {activeTab === "css" && (
                 <div className="code-container">
                   <h3>CSS</h3>
-                  <pre className="code-display">{response.css}</pre>
+                  <pre className="code-display">
+                    {response.files["style.css"]}
+                  </pre>
                   <button
                     className="copy-button"
-                    onClick={() => copyToClipboard(response.css, "css")}
+                    onClick={() =>
+                      copyToClipboard(response.files["style.css"], "css")
+                    }
                   >
                     {copyStatus["css"] ? "Copied!" : "Copy Code"}
                   </button>
@@ -227,11 +239,13 @@ function App() {
               {activeTab === "javascript" && (
                 <div className="code-container">
                   <h3>JavaScript</h3>
-                  <pre className="code-display">{response.javascript}</pre>
+                  <pre className="code-display">
+                    {response.files["script.js"]}
+                  </pre>
                   <button
                     className="copy-button"
                     onClick={() =>
-                      copyToClipboard(response.javascript, "javascript")
+                      copyToClipboard(response.files["script.js"], "javascript")
                     }
                   >
                     {copyStatus["javascript"] ? "Copied!" : "Copy Code"}

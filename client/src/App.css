@@ -7,6 +7,10 @@
   margin: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
 .App-logo {
@@ -27,11 +31,14 @@
   text-align: center;
   font-size: 1.5rem;
   font-weight: bold;
+  margin-bottom: 2rem;
 }
 
 .App-header h1 {
   margin: 0;
   font-size: 2rem;
+  color: #333;
+  margin-bottom: 0.5rem;
 }
 
 .App-header p {
@@ -44,6 +51,8 @@
   display: flex;
   flex: 1;
   overflow: hidden;
+  flex-direction: column;
+  gap: 2rem;
 }
 
 .requirement-form {
@@ -51,14 +60,18 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .requirement-input {
   width: 100%;
   max-width: 800px;
-  padding: 15px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
   font-size: 16px;
   margin-bottom: 15px;
   font-family: inherit;
@@ -66,19 +79,19 @@
 }
 
 .submit-button {
-  padding: 12px 30px;
-  background-color: #4caf50;
+  padding: 12px 24px;
+  background-color: #0066cc;
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 16px;
   font-weight: bold;
-  transition: background-color 0.3s;
+  transition: background-color 0.2s;
 }
 
 .submit-button:hover {
-  background-color: #45a049;
+  background-color: #0052a3;
 }
 
 .submit-button:disabled {
@@ -87,8 +100,8 @@
 }
 
 .error-message {
-  color: #f44336;
-  margin: 15px 0;
+  color: #dc3545;
+  margin: 1rem 0;
   font-weight: bold;
 }
 
@@ -103,6 +116,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  text-align: left;
 }
 
 .code-section {
@@ -127,29 +141,31 @@
 
 .copy-button {
   align-self: flex-start;
-  padding: 8px 15px;
-  background-color: #4caf50;
+  padding: 12px 24px;
+  background-color: #28a745;
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
+  font-size: 16px;
+  transition: background-color 0.2s;
+  margin-top: 1rem;
 }
 
 .copy-button:hover {
-  background-color: #45a049;
+  background-color: #218838;
 }
 
 .code-display {
-  padding: 15px;
-  background-color: #f8f8f8;
+  padding: 20px;
+  background-color: #f8f9fa;
   border: 1px solid #ddd;
-  border-radius: 5px;
+  border-radius: 6px;
   font-family: "Courier New", Courier, monospace;
   font-size: 14px;
-  white-space: pre-wrap;
+  white-space: pre;
   overflow: auto;
+  margin: 10px 0;
 }
 
 .preview-container {
@@ -159,6 +175,7 @@
   background-color: white;
   padding: 20px;
   overflow-y: auto;
+  margin: 20px 0;
 }
 
 .preview-container h3 {
@@ -171,8 +188,10 @@
 .preview-frame {
   flex: 1;
   border: 1px solid #ddd;
-  border-radius: 5px;
+  border-radius: 8px;
   background-color: #f9f9f9;
+  width: 100%;
+  height: 500px;
 }
 
 .chat-container {
@@ -183,6 +202,7 @@
   border-right: 1px solid #ddd;
   padding: 20px;
   overflow-y: auto;
+  text-align: left;
 }
 
 .chat-header {
@@ -195,15 +215,16 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 1rem;
   overflow-y: auto;
 }
 
 .chat-message {
-  padding: 10px;
-  border-radius: 5px;
+  padding: 15px;
+  border-radius: 8px;
   background-color: #f0f0f0;
   margin-bottom: 10px;
+  max-width: 80%;
 }
 
 .chat-message.user {
@@ -212,7 +233,7 @@
 }
 
 .chat-message.agent {
-  background-color: #e8eaf6;
+  background-color: #f0f7ff;
   align-self: flex-start;
 }
 
@@ -235,37 +256,48 @@
   flex-direction: column;
   background-color: white;
   border-right: 1px solid #ddd;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 20px 0;
 }
 
 .tabs-header {
   display: flex;
   border-bottom: 1px solid #ddd;
-  background-color: #f9f9f9;
+  background-color: #f8f9fa;
 }
 
 .tabs-header button {
   flex: 1;
-  padding: 10px;
+  padding: 12px 24px;
   border: none;
   background-color: transparent;
   font-size: 1rem;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.2s;
+  border-right: 1px solid #ddd;
+}
+
+.tabs-header button:last-child {
+  border-right: none;
 }
 
 .tabs-header button:hover {
-  background-color: #e0e0e0;
+  background-color: #e9ecef;
 }
 
 .active-tab {
-  background-color: #ddd;
+  background-color: white;
   font-weight: bold;
+  border-bottom: 3px solid #0066cc;
 }
 
 .tabs-content {
   flex: 1;
   padding: 20px;
   overflow-y: auto;
+  background-color: white;
 }
 
 @keyframes App-logo-spin {
@@ -285,10 +317,23 @@
   .code-container {
     grid-template-columns: 1fr;
   }
+
+  .App {
+    padding: 10px;
+  }
+
+  .tabs-header button {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+
+  .code-display {
+    font-size: 14px;
+  }
 }
 
 .prd-container {
-  background-color: white;
+  background-color: #f8f9fa;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   margin: 20px auto;
@@ -304,12 +349,15 @@
 }
 
 .prd-content {
-  background-color: #f8f9fa;
+  background-color: white;
   border-radius: 4px;
-  padding: 15px;
+  padding: 20px;
   margin: 15px 0;
   max-height: 400px;
   overflow-y: auto;
+  text-align: left;
+  border: 1px solid #ddd;
+  border-radius: 6px;
 }
 
 .prd-content pre {
@@ -317,28 +365,29 @@
   white-space: pre-wrap;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   line-height: 1.5;
+  word-wrap: break-word;
 }
 
 .prd-actions {
   display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-  margin-top: 20px;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1rem;
 }
 
 .approve-button {
-  padding: 10px 20px;
-  background-color: #28a745;
+  padding: 12px 24px;
+  background-color: #0066cc;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   font-weight: 500;
   transition: background-color 0.2s;
 }
 
 .approve-button:hover {
-  background-color: #218838;
+  background-color: #0052a3;
 }
 
 .approve-button:disabled {
@@ -347,16 +396,16 @@
 }
 
 .reject-button {
-  padding: 10px 20px;
+  padding: 12px 24px;
   background-color: #dc3545;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   font-weight: 500;
   transition: background-color 0.2s;
 }
 
 .reject-button:hover {
-  background-color: #c82333;
+  background-color: #bd2130;
 }

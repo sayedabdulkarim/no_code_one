@@ -297,36 +297,38 @@ Example structure:
             raise LLMServiceError(f"Error: {str(e)}")
 
     async def generate_ui(self, requirement: str) -> Dict[str, str]:
+        """Generate UI code files based on the requirement."""
         prompt = f"""
-        Based on this requirement: "{requirement}"
+        Create a complete implementation for this requirement: '{requirement}'
         
-        Generate a complete frontend implementation using only HTML, CSS, and JavaScript.
-        Return ONLY a JSON object with the following structure:
+        Return ONLY a JSON object with exactly this structure:
         {{
-            "index.html": "complete HTML content",
-            "style.css": "complete CSS content",
-            "script.js": "complete JavaScript content"
+            "index.html": "<complete HTML code here>",
+            "style.css": "/* complete CSS code here */",
+            "script.js": "// complete JavaScript code here"
         }}
         
-        The code should be production-ready, well-structured, and fully functional.
-        Do not include any explanations or markdown - only the JSON object.
+        The code should be production-ready and fully functional.
+        Do not include any explanations or markdown formatting.
+        Return only the JSON object.
         """
         
         try:
-            # Call your LLM with the prompt
-            response = await self._call_llm(prompt)
+            # Generate the response
+            response = await self.generate_text(prompt)
             
-            # Parse the response as JSON
-            files = json.loads(response)
+            # Parse the JSON response
+            try:
+                files = json.loads(response)
+            except json.JSONDecodeError:
+                raise LLMServiceError("Failed to parse LLM response as JSON")
             
             # Validate the response structure
             required_files = {"index.html", "style.css", "script.js"}
             if not all(file in files for file in required_files):
                 raise LLMServiceError("Invalid response structure: missing required files")
-                
+            
             return files
             
-        except json.JSONDecodeError as e:
-            raise LLMServiceError(f"Failed to parse LLM response as JSON: {str(e)}")
         except Exception as e:
-            raise LLMServiceError(f"LLM service error: {str(e)}")
+            raise LLMServiceError(f"UI generation failed: {str(e)}")

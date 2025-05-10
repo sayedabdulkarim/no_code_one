@@ -19,10 +19,17 @@ class AgentService:
             A dictionary with the generated HTML, CSS, and JavaScript, plus additional details
         """
         try:
-            # Generate UI files
-            files = await self.llm_service.generate_ui(requirement)
+            # Generate clean UI code files
+            generated_code = await self.llm_service.generate_ui(requirement)
             
-            return {"files": files}
+            # Return the files in the expected format
+            return {
+                "files": {
+                    "index.html": generated_code.get("index.html", ""),
+                    "style.css": generated_code.get("style.css", ""),
+                    "script.js": generated_code.get("script.js", "")
+                }
+            }
             
         except Exception as e:
             raise LLMServiceError(f"Failed to process requirement: {str(e)}")
@@ -103,7 +110,7 @@ class AgentService:
         
         return await self.llm_service.generate_text(prompt)
     
-    async def _generate_ui_code(self, requirement: str, analysis: str, plan: str) -> Dict[str, str]:
+    async def _generate_ui_code(self, requirement: str, analysis: str, plan: str) -> str:
         """Generate the actual UI code based on the requirement, analysis and plan."""
         prompt = f"""
         Based on this UI requirement: '{requirement}'
@@ -120,9 +127,8 @@ class AgentService:
         If anything is unclear or not feasible, explain why in your code comments.
         """
         
-        # Use generate() instead of generate_text() to utilize memory features
-        result = await self.llm_service.generate(prompt)
-        return result
+        # Generate the code as a string
+        return await self.llm_service.generate_text(prompt)
     
     async def _generate_feedback(self, requirement: str, analysis: str) -> str:
         """Generate feedback when the requirement is too vague or not feasible."""
@@ -143,25 +149,20 @@ class AgentService:
         
         return await self.llm_service.generate_text(prompt)
     
-    def _extract_code_blocks(self, text: str) -> tuple[str, str, str]:
+    def _extract_code_blocks(self, text: str) -> tuple[Optional[str], Optional[str], Optional[str]]:
         """Extract HTML, CSS, and JavaScript code blocks from the generated text."""
-        html = ""
-        css = ""
-        javascript = ""
-        
-        # Extract HTML
-        html_matches = re.search(r"```html\s*(.*?)\s*```", text, re.DOTALL)
-        if html_matches:
-            html = html_matches.group(1).strip()
+        if not isinstance(text, str):
+            raise ValueError("Generated code must be a string")
+
+        def extract_block(pattern: str) -> Optional[str]:
+            matches = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
+            return matches.group(1).strip() if matches else None
             
-        # Extract CSS
-        css_matches = re.search(r"```css\s*(.*?)\s*```", text, re.DOTALL)
-        if css_matches:
-            css = css_matches.group(1).strip()
-            
-        # Extract JavaScript
-        js_matches = re.search(r"```javascript\s*(.*?)\s*```", text, re.DOTALL)
-        if js_matches:
-            javascript = js_matches.group(1).strip()
+        html = extract_block(r"```html\s*(.*?)\s*```")
+        css = extract_block(r"```css\s*(.*?)\s*```")
+        javascript = extract_block(r"```javascript\s*(.*?)\s*```")
         
-        return html, css, javascript
+        if not any([html, css, javascript]):
+            raise ValueError("No code blocks found in generated text")
+            
+        return html or "", css or "", javascript or ""
