@@ -9,26 +9,29 @@ class AgentService:
         self.llm_service = LLMService()
         
     async def process_requirement(self, requirement: str) -> Dict[str, Any]:
-        """
-        Process a UI requirement through the agent's reasoning and generation steps.
-        
-        Args:
-            requirement: The user's UI requirement
-            
-        Returns:
-            A dictionary with the generated HTML, CSS, and JavaScript, plus additional details
-        """
         try:
-            # Generate clean UI code files
+            # First check if this is a modification request
+            is_modification = self._is_modification_request(requirement)
+            
+            # Analyze the requirement
+            analysis = await self._analyze_requirement(requirement, is_modification)
+            
+            # Create implementation plan
+            plan = await self._plan_implementation(requirement, analysis, is_modification)
+            
+            # Generate UI code files
             generated_code = await self.llm_service.generate_ui(requirement)
             
-            # Return the files in the expected format
+            # Return complete response with analysis and plan
             return {
                 "files": {
                     "index.html": generated_code.get("index.html", ""),
                     "style.css": generated_code.get("style.css", ""),
                     "script.js": generated_code.get("script.js", "")
-                }
+                },
+                "analysis": analysis,
+                "plan": plan,
+                "feedback": None  # Add feedback if needed
             }
             
         except Exception as e:
